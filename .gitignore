@@ -1,0 +1,11 @@
+node_modules/
+out/
+dist/
+.vite/
+*.png
+/tmp/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
