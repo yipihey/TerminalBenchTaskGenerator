@@ -11,6 +11,7 @@ import * as terminalIpc from './ipc/terminal.ipc'
 import * as validationIpc from './ipc/validation.ipc'
 import * as critiqueIpc from './ipc/critique.ipc'
 import * as importIpc from './ipc/import.ipc'
+import * as browseIpc from './ipc/browse.ipc'
 
 /**
  * Electron main entry point.
@@ -34,8 +35,10 @@ function createWindow(): BrowserWindow {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
-    if (is.dev && !process.argv.includes('--no-devtools')) {
-      mainWindow.webContents.openDevTools({ mode: 'bottom' })
+    // DevTools: open only when explicitly requested via --devtools flag.
+    // Users can also press F12 / Cmd+Opt+I at runtime.
+    if (process.argv.includes('--devtools')) {
+      mainWindow.webContents.openDevTools({ mode: 'detach' })
     }
   })
 
@@ -102,6 +105,7 @@ if (!gotTheLock) {
     validationIpc.register(mainWindow)
     critiqueIpc.register(mainWindow)
     importIpc.register(mainWindow)
+    browseIpc.register(mainWindow)
 
     // macOS: re-create window when dock icon is clicked and no windows exist
     app.on('activate', () => {

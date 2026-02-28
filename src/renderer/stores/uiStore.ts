@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type SidebarMode = 'chat' | 'edit' | 'run' | 'history' | 'critique'
+export type SidebarMode = 'chat' | 'edit' | 'run' | 'history' | 'critique' | 'browse'
 export type Theme = 'dark' | 'light'
 
 interface UiState {

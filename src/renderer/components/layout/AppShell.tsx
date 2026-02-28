@@ -3,6 +3,7 @@ import { useUiStore, type SidebarMode } from '../../stores/uiStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { useChatStore } from '../../stores/chatStore'
 import { useCritiqueStore } from '../../stores/critiqueStore'
+import { useEditorStore, isHarborTab, type EditorTabId } from '../../stores/editorStore'
 import { Sidebar } from './Sidebar'
 import { WorkspaceTabs } from './WorkspaceTabs'
 import { StatusBar } from './StatusBar'
@@ -12,12 +13,41 @@ import { EditorPanel } from '../editor/EditorPanel'
 import { RunnerPanel } from '../runner/RunnerPanel'
 import { VersionHistory } from '../history/VersionHistory'
 import { CritiquePanel } from '../critique/CritiquePanel'
+import { BrowsePanel } from '../browse/BrowsePanel'
+import { TaskPreview } from '../browse/TaskPreview'
+
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.ico'])
+
+/** Map a file name to a harbor editor tab id. */
+function fileNameToHarborTab(name: string): EditorTabId | null {
+  const mapping: Record<string, EditorTabId> = {
+    'task.toml': 'task.toml',
+    'instruction.md': 'instruction.md',
+    'Dockerfile': 'Dockerfile',
+    'solve.sh': 'solve.sh',
+    'test.sh': 'test.sh',
+  }
+  return mapping[name] ?? null
+}
+
+function isImageFile(name: string): boolean {
+  const dotIdx = name.lastIndexOf('.')
+  if (dotIdx === -1) return false
+  return IMAGE_EXTENSIONS.has(name.slice(dotIdx).toLowerCase())
+}
+
+function getFileIcon(name: string, language: string): string {
+  if (language === 'image' || isImageFile(name)) return '\uD83D\uDDBC\uFE0F'
+  return '\uD83D\uDCC4'
+}
 
 /** Mini file list shown in the right panel during Chat mode */
 function MiniEditor() {
   const activeWorkspaceId = useWorkspaceStore((s) => s.activeWorkspaceId)
   const workspaceFiles = useWorkspaceStore((s) => s.workspaceFiles)
   const setSidebarMode = useUiStore((s) => s.setSidebarMode)
+  const setActiveTab = useEditorStore((s) => s.setActiveTab)
+  const openFileTab = useEditorStore((s) => s.openFileTab)
   const files = activeWorkspaceId ? workspaceFiles[activeWorkspaceId] ?? [] : []
 
   if (!activeWorkspaceId || files.length === 0) {
@@ -28,20 +58,35 @@ function MiniEditor() {
     )
   }
 
+  const handleFileClick = (file: { path: string; language: string }) => {
+    const name = file.path.split('/').pop() || ''
+    const harborTab = fileNameToHarborTab(name)
+    if (harborTab) {
+      setActiveTab(harborTab)
+    } else {
+      openFileTab(file.path, name, file.language)
+    }
+    setSidebarMode('edit')
+  }
+
   return (
     <div className="flex flex-col gap-1 p-3">
       <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">Workspace Files</p>
       {files.map((f) => {
         const name = f.path.split('/').pop() || f.path
-        const lines = f.content.split('\n').length
+        const isImage = f.language === 'image'
+        const info = isImage ? 'IMG' : `${f.content.split('\n').length}L`
         return (
           <button
             key={f.path}
-            onClick={() => setSidebarMode('edit')}
+            onClick={() => handleFileClick(f)}
             className="flex items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition-colors hover:bg-zinc-800 group"
           >
-            <span className="text-zinc-300 group-hover:text-zinc-100 truncate">{name}</span>
-            <span className="text-[10px] text-zinc-600 shrink-0 ml-2">{lines}L</span>
+            <span className="flex items-center gap-1.5 text-zinc-300 group-hover:text-zinc-100 truncate">
+              <span className="text-xs shrink-0">{getFileIcon(name, f.language)}</span>
+              {name}
+            </span>
+            <span className="text-[10px] text-zinc-600 shrink-0 ml-2">{info}</span>
           </button>
         )
       })}
@@ -177,6 +222,7 @@ const mainPanelContent: Record<SidebarMode, React.ReactNode> = {
   run: <RunnerPanel />,
   history: <VersionHistory />,
   critique: <CritiquePanel />,
+  browse: <BrowsePanel />,
 }
 
 const rightPanelContent: Record<SidebarMode, { title: string; content: React.ReactNode }> = {
@@ -185,6 +231,7 @@ const rightPanelContent: Record<SidebarMode, { title: string; content: React.Rea
   run: { title: 'Validation', content: <ValidationSummary /> },
   history: { title: 'Diff View', content: <ValidationSummary /> },
   critique: { title: 'Scores', content: <ScoresPanel /> },
+  browse: { title: 'Task Preview', content: <TaskPreview /> },
 }
 
 export function AppShell() {

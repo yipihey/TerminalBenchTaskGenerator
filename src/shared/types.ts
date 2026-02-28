@@ -161,6 +161,25 @@ export interface ValidationIssue {
   code: string
 }
 
+// ─── Browse Types ───
+
+export interface TerminalBenchTaskMeta {
+  slug: string                    // dir name, e.g. "hello-world"
+  instruction: string
+  authorName: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  category: string
+  tags: string[]
+  maxAgentTimeoutSec: number
+  maxTestTimeoutSec: number
+  files: string[]                 // relative file paths in the task dir
+}
+
+export interface TerminalBenchIndex {
+  tasks: TerminalBenchTaskMeta[]
+  fetchedAt: number               // epoch ms for TTL
+}
+
 // ─── IPC Channel Types ───
 
 export interface IpcChannels {
@@ -202,6 +221,11 @@ export interface IpcChannels {
   // Import
   'import:from-json': (filePath: string) => Promise<Workspace>
   'import:from-text': (text: string) => Promise<Workspace>
+
+  // Browse
+  'browse:fetch-index': (forceRefresh?: boolean) => Promise<TerminalBenchIndex>
+  'browse:fetch-task-detail': (slug: string) => Promise<TerminalBenchTaskMeta>
+  'browse:import-task': (slug: string) => Promise<Workspace>
 }
 
 // IPC event channels (main → renderer)

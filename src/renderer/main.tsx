@@ -6,6 +6,7 @@ import { useWorkspaceStore } from './stores/workspaceStore'
 import { useUiStore } from './stores/uiStore'
 import { useChatStore } from './stores/chatStore'
 import { useEditorStore } from './stores/editorStore'
+import { useBrowseStore } from './stores/browseStore'
 
 // Expose stores on window for E2E testing via CDP
 ;(window as any).__stores = {
@@ -13,6 +14,7 @@ import { useEditorStore } from './stores/editorStore'
   ui: useUiStore,
   chat: useChatStore,
   editor: useEditorStore,
+  browse: useBrowseStore,
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

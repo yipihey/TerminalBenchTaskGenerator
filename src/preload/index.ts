@@ -9,6 +9,8 @@ const api: ElectronAPI = {
     ipcRenderer.invoke('workspace:open', path),
   listWorkspaces: () =>
     ipcRenderer.invoke('workspace:list'),
+  updateWorkspace: (id, updates) =>
+    ipcRenderer.invoke('workspace:update', id, updates),
   deleteWorkspace: (id) =>
     ipcRenderer.invoke('workspace:delete', id),
   getWorkspaceFiles: (workspaceId) =>
@@ -23,6 +25,10 @@ const api: ElectronAPI = {
     ipcRenderer.invoke('fs:watch-start', workspaceId),
   stopFileWatch: (workspaceId) =>
     ipcRenderer.invoke('fs:watch-stop', workspaceId),
+  openFileExternal: (filePath) =>
+    ipcRenderer.invoke('fs:open-file-external', filePath),
+  readFileBase64: (filePath) =>
+    ipcRenderer.invoke('fs:read-file-base64', filePath),
 
   // ── Agent ──
   sendMessage: (workspaceId, message) =>
@@ -31,6 +37,12 @@ const api: ElectronAPI = {
     ipcRenderer.invoke('agent:stop', workspaceId),
   getAgentStatus: (workspaceId) =>
     ipcRenderer.invoke('agent:get-status', workspaceId),
+
+  // ── Chat persistence ──
+  saveChatMessages: (workspaceId, messagesJson) =>
+    ipcRenderer.invoke('chat:save-messages', workspaceId, messagesJson),
+  loadChatMessages: (workspaceId) =>
+    ipcRenderer.invoke('chat:load-messages', workspaceId),
 
   // ── Critique ──
   runCritique: (workspaceId) =>
@@ -63,6 +75,14 @@ const api: ElectronAPI = {
     ipcRenderer.invoke('import:from-json', filePath),
   importFromText: (text) =>
     ipcRenderer.invoke('import:from-text', text),
+
+  // ── Browse ──
+  fetchBrowseIndex: (forceRefresh?) =>
+    ipcRenderer.invoke('browse:fetch-index', forceRefresh),
+  fetchBrowseTaskDetail: (slug) =>
+    ipcRenderer.invoke('browse:fetch-task-detail', slug),
+  importBrowseTask: (slug) =>
+    ipcRenderer.invoke('browse:import-task', slug),
 
   // ── Event listeners (main -> renderer) ──
   onAgentEvent: (callback) => {
