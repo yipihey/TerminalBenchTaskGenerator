@@ -3,6 +3,7 @@ out/
 dist/
 .vite/
 *.png
+!docs/screenshots/*.png
 /tmp/
 *.log
 
